@@ -4,7 +4,7 @@
   "description": "The awesomest bot evar.",
   "main": "index.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -17,12 +17,17 @@
     "npm": "5.5.1"
   },
   "dependencies": {
+    "body-parser": "1.15.0",
     "botkit": "0.2.2",
     "botkit-storage-mongo": "^1.0.2",
     "dotenv": "^5.0.1",
-    "mongodb": "^1.4.39",
-    "body-parser": "1.15.0",
     "express": "~4.13.4",
-    "mongoose": "^4.11.12"
+    "http-request": "^0.7.0",
+    "mongodb": "^1.4.39",
+    "mongoose": "^4.11.12",
+    "oauth": "^0.9.15"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.2"
   }
 }

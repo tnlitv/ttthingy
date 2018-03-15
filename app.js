@@ -1,3 +1,5 @@
+'use strict';
+
 require('./lib/index.js')();
 
 const http = require('http');
