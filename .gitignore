@@ -1,0 +1,6 @@
+#MODULES
+node_modules/*
+
+#ENVs
+*.env
+.idea/*
