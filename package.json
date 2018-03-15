@@ -25,7 +25,8 @@
     "http-request": "^0.7.0",
     "mongodb": "^1.4.39",
     "mongoose": "^4.11.12",
-    "oauth": "^0.9.15"
+    "oauth": "^0.9.15",
+    "googleapis": "^27.0.0"
   },
   "devDependencies": {
     "nodemon": "^1.17.2"
