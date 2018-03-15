@@ -1,4 +1,4 @@
-var models = ['./counter.js'];
+var models = ['./user.js'];
 
 exports.initialize = function () {
     var l = models.length;

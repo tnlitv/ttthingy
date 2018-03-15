@@ -22,6 +22,7 @@
     "botkit-storage-mongo": "^1.0.2",
     "dotenv": "^5.0.1",
     "express": "~4.13.4",
+    "express-session": "^1.15.6",
     "http-request": "^0.7.0",
     "mongodb": "^1.4.39",
     "mongoose": "^4.11.12",
