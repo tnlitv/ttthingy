@@ -23,7 +23,6 @@ function tokenRequestHandler (oa) {
 
 function oauthCallbackHandler (oa, req) {
     return new Promise((resolve, reject) => {
-        console.log(req.query);
         oa.getOAuthAccessToken(
             req.session.oauth_token,
             req.session.oauth_token_secret,
@@ -90,11 +89,7 @@ async function authCallback (req, res) {
             email,
             jiraTokens: tokenData,
         });
-        res.send({
-            message: 'successfully authenticated.',
-            access_token: tokenData.accessToken,
-            secret: tokenData.accessTokenSecret,
-        });
+        res.send('All done, you`re great (maybe) <3');
     } catch (e) {
         console.error('authenticate callback error', e);
         return res.send(e.toString());

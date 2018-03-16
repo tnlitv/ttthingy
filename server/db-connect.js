@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('./config.js');
-const mongoURI = config.mongoURI;
+const mongoURI = process.env.MONGODB_URI;
 const options = config.mongoOptions;
 require('./models/init.js').initialize();
 

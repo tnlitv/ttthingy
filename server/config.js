@@ -9,7 +9,6 @@ app.use(bodyParser.urlencoded({
 }));
 
 module.exports = app;
-module.exports.mongoURI = "mongodb://localhost/botapp";
 module.exports.mongoOptions = {
     useMongoClient: true
 };

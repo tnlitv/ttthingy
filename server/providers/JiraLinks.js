@@ -1,4 +1,6 @@
 module.exports = {
+    auth: () => `/jira/auth`,
+    authQuery: (email) => `?email=${email}`,
     boards: (name) => `/rest/agile/1.0/board?name=${name}`,
     username: () => '/rest/auth/1/session',
     sprints: (board) => `/rest/agile/1.0/board/${board}/sprint?state=active`,

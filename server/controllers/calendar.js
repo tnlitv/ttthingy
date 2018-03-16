@@ -1,18 +1,18 @@
-var {google} = require('googleapis');
-var OAuth2 = google.auth.OAuth2;
-var oauth2Client = new OAuth2(
+'use strict';
+
+const {google} = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
+const User = require('mongoose').model('User');
+const JiraLinks = require('../providers/JiraLinks');
+const oauth2Client = new OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URL
+    process.env.APP_URL + process.env.GOOGLE_REDIRECT_PATHNAME
 );
 
 const getEvents = async function (req, res) {
     try {
-        // let code = '4/AAB8KyILG6oZ0cmANoLvHidGrzXjz_-GFiEmzXf5Xgcj2L_lqUxx4khfqxteZeCXowRYe2bBFwVjFdRmxOc2I3Q#';
 
-        // oauth2Client.getToken(code, function (err, tokens) {
-        // Now tokens contains an access_token and an optional refresh_token. Save them.
-        // if (err) return res.send(err);
         let calendar = google.calendar('v3');
 
         let tokens = {
@@ -80,24 +80,40 @@ const getEvents = async function (req, res) {
 
 const getConcentPageUrl = function (req, res) {
 // generate a url that asks permissions for Google+ and Google Calendar scopes
-    var scopes = [
+    const {query: {email}} = req;
+    const scopes = [
         'https://www.googleapis.com/auth/calendar',
     ];
 
-    var url = oauth2Client.generateAuthUrl({
+    const url = oauth2Client.generateAuthUrl({
         // 'online' (default) or 'offline' (gets refresh_token)
         access_type: 'offline',
         // If you only need one scope you can pass it as a string
         scope: scopes,
-        redirect_uri: process.env.GOOGLE_REDIRECT_URL,
-        client_id: process.env.GOOGLE_CLIENT_ID
+        redirect_uri: process.env.APP_URL + process.env.GOOGLE_REDIRECT_PATHNAME,
+        client_id: process.env.GOOGLE_CLIENT_ID,
         // Optional property that passes state parameters to redirect URI
-        // state: 'foo'
+        state: email,
     });
-    res.json({url});
+    res.redirect(url);
+};
+
+const saveTokens = async function (req, res) {
+    try {
+        const {query: {code, state}} = req;
+        const {tokens} = await oauth2Client.getToken(code);
+        await User.set({
+            email: state,
+            googleTokens: tokens,
+        });
+        res.redirect(JiraLinks.auth() + JiraLinks.authQuery(state));
+    } catch (e) {
+        res.status(500).send(e);
+    }
 };
 
 module.exports = {
     getEvents,
-    getConcentPageUrl
+    getConcentPageUrl,
+    saveTokens,
 };
