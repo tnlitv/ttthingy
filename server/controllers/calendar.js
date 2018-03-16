@@ -10,18 +10,11 @@ const oauth2Client = new OAuth2(
     process.env.APP_URL + process.env.GOOGLE_REDIRECT_PATHNAME
 );
 
-const getEvents = async function (req, res) {
+const getEvents = async function (email) {
     try {
-
         let calendar = google.calendar('v3');
-
-        let tokens = {
-            "access_token": "ya29.Glt_Ba-JlqC_r3Ke2PVAV88x4931L9Kwn9fjjFj22h4sCGHORGZPTIx1eEv2K5ySuuAr9jbFiG901ZLaY8KuHq_-VtmGxuxPnpVJWT_zf3EL-f4-qntWU-ZB2shf",
-            "token_type": "Bearer",
-            "refresh_token": "1/ApdmDdtv6ne-L3QKY_oyly6rKD9lc9bCK6WV4N28guU",
-            "expiry_date": 1521129565558
-        };
-        oauth2Client.setCredentials(tokens);
+        const { googleTokens } = await User.findOne({email});
+        oauth2Client.setCredentials(googleTokens);
         const calendarResponse = await new Promise((resolve, reject) => {
             let args = {
                 auth: oauth2Client,
@@ -35,7 +28,7 @@ const getEvents = async function (req, res) {
         let calendarsList = calendarResponse.data.items;
 
         let promises = calendarsList.map(calendarItem => {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve) => {
                 let args = {
                     auth: oauth2Client,
                     setting: "timezone",
@@ -46,16 +39,22 @@ const getEvents = async function (req, res) {
                 };
                 calendar.events.list(args, function (err, response) {
                     if (err) {
-                        console.log(err);
+                        console.log(err.toString());
                         resolve([]);
                     }
                     resolve(response.data.items);
-                })
+                });
             });
         });
 
         let events = await Promise.all(promises);
-        events = Array.prototype.concat.apply([], events).filter(e => e.status !== 'cancelled');
+        events = Array.prototype.concat.apply([], events).filter(e => {
+            const escaped = !!process.env.ESCAPED_EVENTS ? process.env.ESCAPED_EVENTS.split(',').join('|') : '';
+            if (escaped !== '') {
+                return e.status !== 'cancelled' && !new RegExp(escaped).test(e.summary);
+            }
+            return e.status !== 'cancelled';
+        });
 
         let duration = 0;
         events.forEach(e => {
@@ -65,16 +64,18 @@ const getEvents = async function (req, res) {
             var diffMinutes = Math.ceil(timeDiff / (1000 * 60));
             duration += diffMinutes;
         });
+        events = events.map(event => event.summary);
 
-        return res.json({
-            duration: {
-                hours: Math.floor(duration / 60),
-                minutes: (Math.round(duration / 15) * 15) % 60
-            },
-            events
-        });
+        return {
+            'Meeting h': (Math.round(duration / 30) * 30) / 60,
+            desc: events.join(','),
+        };
     } catch (e) {
-        res.status(500).send(e);
+        console.error(e.toString());
+        return {
+            'Meeting h': 0,
+            desc: '',
+        };
     }
 };
 
@@ -102,6 +103,7 @@ const saveTokens = async function (req, res) {
     try {
         const {query: {code, state}} = req;
         const {tokens} = await oauth2Client.getToken(code);
+        console.log(tokens);
         await User.set({
             email: state,
             googleTokens: tokens,

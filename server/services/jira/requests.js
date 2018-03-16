@@ -28,7 +28,7 @@ OAuth.prototype.post = async function(url, oauth_token, oauth_token_secret, post
     );
 };
 
-async function get (user, consumer, url) {
+async function get (user, url) {
     try {
         const consumer = await options.consumer();
         return new Promise((resolve, reject) => {
@@ -49,11 +49,10 @@ async function get (user, consumer, url) {
     }
 }
 
-async function post (user, consumer, url, data) {
+async function post (user, url, data) {
     try {
         const consumer = await options.consumer();
         return new Promise((resolve, reject) => {
-            console.log('post', url, data);
             consumer.post(
                 `${process.env.JIRA_ENDPOINT}${url}`,
                 user.jiraTokens.accessToken,

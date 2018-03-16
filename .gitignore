@@ -1,6 +1,10 @@
-#MODULES
+# MODULES
 node_modules/*
 
-#ENVs
+# ENVs
 *.env
 .idea/*
+
+# KEYS
+rsa_keys/*
+*key.json
