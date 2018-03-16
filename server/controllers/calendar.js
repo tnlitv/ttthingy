@@ -67,8 +67,11 @@ const getEvents = async function (req, res) {
         });
 
         return res.json({
-            hours: Math.floor(duration/60),
-            minutes: duration % 60
+            duration: {
+                hours: Math.floor(duration / 60),
+                minutes: (Math.round(duration / 15) * 15) % 60
+            },
+            events
         });
     } catch (e) {
         res.status(500).send(e);
@@ -79,7 +82,6 @@ const getConcentPageUrl = function (req, res) {
 // generate a url that asks permissions for Google+ and Google Calendar scopes
     var scopes = [
         'https://www.googleapis.com/auth/calendar',
-
     ];
 
     var url = oauth2Client.generateAuthUrl({
@@ -94,9 +96,7 @@ const getConcentPageUrl = function (req, res) {
     });
     res.json({url});
 };
-const setUserToken = function (req, res) {
 
-};
 module.exports = {
     getEvents,
     getConcentPageUrl
