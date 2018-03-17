@@ -16,7 +16,7 @@ app.use(session({
     resave: true,
     saveUninitialized: true,
 }));
-require('./server/db-connect.js');
+require('./server/db-connect.js').connect();
 require('./server/routes.js');
 
 // Starting express server
