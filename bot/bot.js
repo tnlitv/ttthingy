@@ -36,7 +36,7 @@ const config = {
 
 module.exports = function () {
     if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET || !process.env.SLACK_PORT) {
-        console.log('Error: Specify clientId clientSecret and port in environment');
+        console.log('Error: Specify clientId clientSecret and port in environment!');
         process.exit(1);
     }
 

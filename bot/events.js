@@ -45,13 +45,22 @@ async function listen(controller) {
                 reply = {
                     text: '<@' + user_id + '>, ok good',
                 };
+
+                bot.replyInteractive(message, reply);
             } else {
-                reply = {
-                    text: '<@' + user_id + '>, well then go fuck yourself',
-                };
+                var dialog = bot.createDialog(
+                    'Update time',
+                    'update-suggestions',
+                    'Submit'
+                )
+                    .addText('Meetings', 'meetings', '1')
+                    .addText('MAT Project', 'mat', '3:30 - 88, 99')
+                    .addText('LL Project', 'll', '3:30 - 33, 55')
+                    .addText('Other projects', 'other', '0');
+
+                bot.replyWithDialog(message, dialog.asObject());
             }
 
-            bot.replyInteractive(message, reply);
             controller.storage.users.save(user);
         });
 
@@ -73,7 +82,7 @@ async function listen(controller) {
             if (!user) {
                 const resp = await botPromisify(bot.api.users.info, {user: message.user});
                 user = resp.user;
-                controller.storage.users.save(user);
+                await controller.storage.users.save(user);
             }
             const {id} = user;
             bot.reply(message, {
@@ -87,24 +96,6 @@ async function listen(controller) {
                     }
                 ],
             });
-        } catch (e) {
-            console.error(e);
-        }
-    });
-
-    controller.hears(['^show'], 'direct_message', async (bot, message) => {
-        try {
-            var dialog = bot.createDialog(
-                'Update time',
-                'update-suggestions',
-                'Submit'
-            )
-                .addText('Meetings', 'meetings', '1')
-                .addText('MAT Project', 'mat', '3:30 - 88, 99')
-                .addText('LL Project', 'll', '3:30 - 33, 55')
-                .addText('Other projects', 'other', '0');
-
-            bot.replyWithDialog(message, dialog.asObject());
         } catch (e) {
             console.error(e);
         }
