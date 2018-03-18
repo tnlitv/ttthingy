@@ -2,7 +2,7 @@
 
 // require('dotenv').config();
 
-require('./lib/index.js')();
+require('./lib/new_index.js')();
 
 // const http = require('http');
 // const express = require('express');
