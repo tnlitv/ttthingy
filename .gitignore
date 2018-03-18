@@ -6,5 +6,5 @@ node_modules/*
 .idea/*
 
 # KEYS
-rsa_keys/*
+keys/*
 *key.json
