@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+
+
+    var Botkit = require('botkit');
+
+    var bot_options = {
+        clientId: process.env.clientId,
+        clientSecret: process.env.clientSecret,
+        scopes: ['bot'],
+        // logLevel: 'debug',
+        json_file_store: process.env.TOKEN, //use a different name if an app or CI,
+    };
+    var controller = Botkit.slackbot(bot_options);
+
+
+    var bot = controller.spawn({
+        token: process.env.TOKEN
+    });
+
+
+    bot.startRTM(function (err, bot, payload) {
+        if (err) {
+            die(err);
+        }
+    });
+
+    controller.on('rtm_open', function (bot) {
+        console.log('** The RTM api just connected!');
+
+        bot.startPrivateConversation({user: 'U9PGXKCE8'}, function (err, convo) {
+            if (err)
+                console.error(err);
+            else {
+                convo.ask({
+                    text: "Here's some pretext",
+                    attachments: [
+                        {
+                            title: 'Do you want to proceed?',
+                            callback_id: '123',
+                            attachment_type: 'default',
+                            actions: [
+                                {
+                                    "name": "yes",
+                                    "text": "Yes",
+                                    "value": "yes",
+                                    "type": "button",
+                                },
+                                {
+                                    "name": "no",
+                                    "text": "No",
+                                    "value": "no",
+                                    "type": "button",
+                                }
+                            ]
+                        }
+                    ]
+                };
+            }
+        });
+
+    });
