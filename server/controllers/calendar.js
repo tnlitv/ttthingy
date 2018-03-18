@@ -2,13 +2,16 @@
 
 const {google} = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
-const User = require('mongoose').model('User');
+const mongoose = require('mongoose');
+const User = mongoose.model('User');
 const JiraLinks = require('../providers/JiraLinks');
 const oauth2Client = new OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
     process.env.APP_URL + process.env.GOOGLE_REDIRECT_PATHNAME
 );
+
+mongoose.Promise = Promise;
 
 const getEvents = async function (email) {
     try {
@@ -103,10 +106,11 @@ const saveTokens = async function (req, res) {
     try {
         const {query: {code, state}} = req;
         const {tokens} = await oauth2Client.getToken(code);
-        console.log(tokens);
+        const user = await User.findOne({email: state});
+        const googleTokens = user ? Object.assign({}, user.googleTokens, tokens) : tokens;
         await User.set({
             email: state,
-            googleTokens: tokens,
+            googleTokens,
         });
         res.redirect(JiraLinks.auth() + JiraLinks.authQuery(state));
     } catch (e) {
