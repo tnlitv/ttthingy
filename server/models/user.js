@@ -17,7 +17,7 @@ let userSchema = Schema({
     googleTokens: Object,
 });
 
-userSchema.statics.set = async function save (user) {
+userSchema.statics.set = function save (user) {
     return this.findOneAndUpdate({
         email: user.email,
     }, user, {

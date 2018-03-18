@@ -1,7 +1,7 @@
 'use strict';
 const {google} = require('googleapis');
 const sheets = google.sheets('v4');
-const key = require('../../../ttthingy-service-account-key.json');
+const key = require('../../../keys/ttthingy-service-account-key.json');
 
 async function authorize() {
     try {
