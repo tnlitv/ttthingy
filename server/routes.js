@@ -13,7 +13,7 @@ const handler = async function (req, res, fn) {
     } catch (e) {
         res.status(500).send(e);
     }
-}
+};
 
 app.get('/status', main.status);
 app.get('/auth', calendar.getConcentPageUrl);
