@@ -3,6 +3,7 @@
 const mongoose = require('mongoose');
 const Token = mongoose.model('Token');
 mongoose.Promise = Promise;
+
 function botPromisify(fn, argsObj) {
     return new Promise((resolve, reject) => {
         fn(argsObj, (err, res) => err ? reject(err) : resolve(res));
@@ -10,7 +11,7 @@ function botPromisify(fn, argsObj) {
 }
 
 async function listen(controller) {
-    const bot = controller.spawn({ token: process.env.TOKEN });
+    const bot = controller.spawn({token: process.env.TOKEN});
     const team = await botPromisify(controller.storage.teams.get, 'T0831CCKU');
     if (!team) {
         await botPromisify(controller.storage.teams.save, {
@@ -40,7 +41,7 @@ async function listen(controller) {
                 }
             }
 
-            if (action == 'suggest' && payload.actions[0].name!=='dismiss') {
+            if (action == 'suggest' && payload.actions[0].name !== 'dismiss') {
                 reply = {
                     text: '<@' + user_id + '>, ok good',
                 };
@@ -86,6 +87,24 @@ async function listen(controller) {
                     }
                 ],
             });
+        } catch (e) {
+            console.error(e);
+        }
+    });
+
+    controller.hears(['^show'], 'direct_message', async (bot, message) => {
+        try {
+            var dialog = bot.createDialog(
+                'Update time',
+                'update-suggestions',
+                'Submit'
+            )
+                .addText('Meetings', 'meetings', '1')
+                .addText('MAT Project', 'mat', '3:30 - 88, 99')
+                .addText('LL Project', 'll', '3:30 - 33, 55')
+                .addText('Other projects', 'other', '0');
+
+            bot.replyWithDialog(message, dialog.asObject());
         } catch (e) {
             console.error(e);
         }
