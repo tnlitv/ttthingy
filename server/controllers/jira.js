@@ -1,17 +1,17 @@
 'use strict';
 
-const User = require('mongoose').model('User');
+const Token = require('mongoose').model('Token');
 const options = require('../services/jira/options');
 const { get, post } = require('../services/jira/requests');
 const JiraLinks = require('../providers/JiraLinks');
 const JiraLabels = require('../providers/JiraLabels');
 
-async function getData(email) {
+async function getData(id) {
     try {
-        if (!email) {
-            throw new Error('email required');
+        if (!id) {
+            throw new Error('id required');
         }
-        const user = await options.user(email);
+        const user = await options.user(id);
 
         const boards = await get(user, JiraLinks.boards('Odessa Team'));
 

@@ -1,29 +1,23 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-let userSchema = Schema({
+let tokenSchema = Schema({
     id: {
-        type: Number
-    },
-    email: {
         type: String,
         required: true,
         unique: true,
-    },
-    slackId: {
-        type: String,
     },
     jiraTokens: Object,
     googleTokens: Object,
 });
 
-userSchema.statics.set = function save (user) {
+tokenSchema.statics.set = function (token, data) {
     return this.findOneAndUpdate({
-        email: user.email,
-    }, user, {
+        id: token,
+    }, data, {
         upsert: true,
         new: true,
     });
 };
 
-mongoose.model('User', userSchema);
+mongoose.model('Token', tokenSchema);

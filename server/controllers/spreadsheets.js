@@ -67,7 +67,7 @@ function findUD(data, key, isValue) {
     }
 }
 
-const getSheetsSuggestions = async function (email) {
+const getSheetsSuggestions = async function (id) {
     try {
         const expectedSheetName = getCurrentSheetExpectedName();
         let currentSheet = await RowHandler.call('get', {
@@ -82,8 +82,8 @@ const getSheetsSuggestions = async function (email) {
         const current = currentSheet.properties;
         let header = await RowHandler.valuesCall('get', { range: `${current.title}!A1:Z1` });
         header = header.data.values[0];
-        const user = await options.user(email);
-        const userdata = await main.workflow(email);
+        const user = await options.user(id);
+        const userdata = await main.workflow(id);
         const { name } = await get(user, JiraLinks.username());
         let values = [];
         header.forEach((val, i) => {

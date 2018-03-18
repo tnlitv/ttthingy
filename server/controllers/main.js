@@ -10,14 +10,14 @@ const status = function (req, res) {
     });
 };
 
-const workflow = async function (email) {
+const workflow = async function (id) {
     try {
-        if (!email) {
-            throw new Error('email required');
+        if (!id) {
+            throw new Error('id required');
         }
         const [cData, jData] = await Promise.all([
-            calendar.getEvents(email),
-            Jira.getData(email),
+            calendar.getEvents(id),
+            Jira.getData(id),
         ]);
         let out = [cData];
         const reducedJD = jData.reduce((groups, item) => {
