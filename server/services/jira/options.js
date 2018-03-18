@@ -7,7 +7,7 @@ const OAuth = require('oauth').OAuth;
 
 async function consumer() {
     const base_url = process.env.JIRA_ENDPOINT;
-    const key = await promisify(fs.readFile)('rsa_keys/jira.pem', 'utf8');
+    const key = await promisify(fs.readFile)(process.env.PRIVATE_KEY_PATH, 'utf8');
 
     return new OAuth(
         `${base_url}/plugins/servlet/oauth/request-token`,
