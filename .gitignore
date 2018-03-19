@@ -6,5 +6,5 @@ node_modules/*
 .idea/*
 
 # KEYS
-keys/*
+# keys/*
 *key.json

@@ -2,9 +2,9 @@
 
 const fs = require('fs');
 const mongoose = require('mongoose');
-const User = mongoose.model('User');
+const Token = mongoose.model('Token');
 const {promisify} = require('util');
-var OAuth = require('oauth').OAuth;
+const OAuth = require('oauth').OAuth;
 
 function tokenRequestHandler (oa) {
     return new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ function oauthCallbackHandler (oa, req) {
 
 async function authenticate(req, res) {
     try {
-        const {email} = req.query;
+        const {id} = req.query;
         const key = await promisify(fs.readFile)(process.env.PRIVATE_KEY_PATH, 'utf8');
         const base_url = process.env.JIRA_ENDPOINT;
         const oa = new OAuth(
@@ -52,7 +52,7 @@ async function authenticate(req, res) {
             process.env.KEY_NAME,
             key,
             process.env.JIRA_API_VERSION,
-            `${process.env.APP_URL}/jira/callback/${email}`,
+            `${process.env.APP_URL}/jira/callback/${id}`,
             'RSA-SHA1'
         );
 
@@ -69,7 +69,7 @@ async function authenticate(req, res) {
 
 async function authCallback (req, res) {
     try {
-        const { email } = req.params;
+        const { id } = req.params;
         const key = await promisify(fs.readFile)(process.env.PRIVATE_KEY_PATH, 'utf8');
         const oa = new OAuth(
             req.session.oa._requestUrl,
@@ -85,8 +85,8 @@ async function authCallback (req, res) {
         req.session.oauth_access_token = tokenData.accessToken;
         req.session.oauth_access_token_secret = tokenData.accessTokenSecret;
 
-        await User.set({
-            email,
+        await Token.set(id, {
+            id,
             jiraTokens: tokenData,
         });
         res.send('All done, you`re great (maybe) <3');

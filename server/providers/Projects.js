@@ -1,9 +1,9 @@
 module.exports = (name) => {
-    const check = String.prototype.includes.bind(name);
+    const check = String.prototype.includes.bind(name.toLowerCase());
     switch (true) {
-        case check('LL'):
+        case check('ll'):
             return 'LL h';
-        case check('MAT'):
+        case check('mat'):
             return 'MAT h';
         case check('meeting'):
             return 'Meeting h';

@@ -3,7 +3,7 @@
 const {google} = require('googleapis');
 const OAuth2 = google.auth.OAuth2;
 const mongoose = require('mongoose');
-const User = mongoose.model('User');
+const Token = mongoose.model('Token');
 const JiraLinks = require('../providers/JiraLinks');
 const oauth2Client = new OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -13,10 +13,10 @@ const oauth2Client = new OAuth2(
 
 mongoose.Promise = Promise;
 
-const getEvents = async function (email) {
+const getEvents = async function (id) {
     try {
         let calendar = google.calendar('v3');
-        const { googleTokens } = await User.findOne({email});
+        const { googleTokens } = await Token.findOne({id});
         oauth2Client.setCredentials(googleTokens);
         const calendarResponse = await new Promise((resolve, reject) => {
             let args = {
@@ -84,7 +84,7 @@ const getEvents = async function (email) {
 
 const getConcentPageUrl = function (req, res) {
 // generate a url that asks permissions for Google+ and Google Calendar scopes
-    const {query: {email}} = req;
+    const {query: {id}} = req;
     const scopes = [
         'https://www.googleapis.com/auth/calendar',
     ];
@@ -97,7 +97,7 @@ const getConcentPageUrl = function (req, res) {
         redirect_uri: process.env.APP_URL + process.env.GOOGLE_REDIRECT_PATHNAME,
         client_id: process.env.GOOGLE_CLIENT_ID,
         // Optional property that passes state parameters to redirect URI
-        state: email,
+        state: id,
     });
     res.redirect(url);
 };
@@ -106,14 +106,15 @@ const saveTokens = async function (req, res) {
     try {
         const {query: {code, state}} = req;
         const {tokens} = await oauth2Client.getToken(code);
-        const user = await User.findOne({email: state});
-        const googleTokens = user ? Object.assign({}, user.googleTokens, tokens) : tokens;
-        await User.set({
-            email: state,
+        const saved = await Token.findOne({id: state});
+        const googleTokens = saved ? Object.assign({}, saved.googleTokens, tokens) : tokens;
+        await Token.set(state, {
+            id: state,
             googleTokens,
         });
         res.redirect(JiraLinks.auth() + JiraLinks.authQuery(state));
     } catch (e) {
+        console.log(e);
         res.status(500).send(e);
     }
 };

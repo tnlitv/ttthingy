@@ -1,4 +1,4 @@
-var models = ['./user.js'];
+var models = ['./tokens.js'];
 
 exports.initialize = function () {
     var l = models.length;

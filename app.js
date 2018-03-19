@@ -1,8 +1,6 @@
-'use strict';
+// 'use strict';
 
 require('dotenv').config();
-
-// require('./lib/index.js')();
 
 const http = require('http');
 const express = require('express');
@@ -17,6 +15,7 @@ app.use(session({
     saveUninitialized: true,
 }));
 require('./server/db-connect.js').connect();
+require('./bot/bot')();
 require('./server/routes.js');
 
 // Starting express server
