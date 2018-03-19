@@ -2,8 +2,10 @@
 
 const mongoose = require('mongoose');
 const Token = mongoose.model('Token');
+const Project = require('../server/providers/Projects');
 mongoose.Promise = Promise;
 const main = require('../server/controllers/main');
+const sheet = require('../server/controllers/spreadsheets');
 
 function botPromisify(fn, argsObj) {
     return new Promise((resolve, reject) => {
@@ -30,15 +32,31 @@ function jsonToValues(json) {
 }
 
 function textToJson(text) {
-    const out = [];
-    let obj = {};
-    text.split('\n').forEach(val => {
-        const [key, value] = val.split(': ');
-        obj[key] = value;
-        if (key === 'desc') {
+    try {
+        const out = [];
+        let obj = {};
+        text.split('\n').forEach(val => {
+            const [project, hours, ...desc] = val.split(' ');
+            obj[Project(project)] = hours;
+            obj.desc = desc.join(' ');
             out.push(obj);
             obj = {};
-        }
+        });
+        return out;
+    } catch (e) {
+        throw new Error('invalid input');
+    }
+}
+
+function fieldsToJson(fields) {
+    const out = [];
+    fields.forEach(f => {
+       const [key, val] = f.title.split(': ');
+       const desc = f.value;
+       let obj = {};
+       obj[key] = val;
+       obj.desc = desc;
+       out.push(obj);
     });
     return out;
 }
@@ -59,100 +77,76 @@ async function listen(controller) {
         }
     });
 
-    controller.on([
-        'interactive',
-        'interactive_message',
-        'interactive_message_callback'
-    ], function (bot, message) {
-        const ids = message.callback_id.split(/\-/);
-        const user_id = ids[0];
-        const action = ids[1];
-        const payload = JSON.parse(message.payload);
+    controller.on(
+        'interactive_message_callback', async (bot, message) => {
+            try {
+                const ids = message.callback_id.split(/\-/);
+                const user_id = ids[0];
+                const action = ids[1];
+                const payload = JSON.parse(message.payload);
 
-        controller.storage.users.get(user_id, function (err, user) {
-            let reply;
-            if (!user) {
-                user = {
-                    id: user_id,
-                    list: []
+                let reply;
+                if (action == 'suggest' && payload.actions[0].name !== 'change') {
+                    reply = {
+                        text: '<@' + user_id + '>, submitted to spreadsheet',
+                    };
+
+                    let values = fieldsToJson(message.original_message.attachments[0].fields);
+                    sheet.addRowToSpreadsheet(values, user_id);
+                    bot.replyInteractive(message, reply);
+
+                } else {
+                    bot.replyInteractive(message,
+                        'Enter your data in the following format: ' +
+                        '\nProject/\'Meetings\' hours comment ' +
+                        '\nProject/\'Meetings\' hours comment ');
                 }
+            } catch (e) {
+                console.error(e);
             }
-
-            if (action == 'suggest' && payload.actions[0].name !== 'dismiss') {
-                reply = {
-                    text: '<@' + user_id + '>, ok good',
-                };
-
-                bot.replyInteractive(message, reply);
-            } else {
-                var dialog = bot.createDialog(
-                    'Update time',
-                    'update-suggestions',
-                    'Submit'
-                )
-                    .addText('Meetings', 'meetings', '1')
-                    .addText('MAT Project', 'mat', '3:30 - 88, 99')
-                    .addText('LL Project', 'll', '3:30 - 33, 55')
-                    .addText('Other projects', 'other', '0');
-
-                bot.replyWithDialog(message, dialog.asObject());
-            }
-
-            controller.storage.users.save(user);
-        });
-
     });
 
 // Handle events related to the websocket connection to Slack
     controller.on('rtm_open', async (bot) => {
-        // try {
-        //     console.log('** The RTM api just connected!');
-        //     var dialog = bot.createDialog(
-        //             'Update time',
-        //             'update-suggestions',
-        //             'Submit'
-        //         )
-        //         .addText('Meetings', 'meetings', '1')
-        //         .addText('MAT Project', 'mat', '3:30 - 88, 99')
-        //         .addText('LL Project', 'll', '3:30 - 33, 55')
-        //         .addText('Other projects', 'other', '0');
-        //
-        //     bot.replyWithDialog(message, dialog.asObject());
-        // } catch (e) {
-        //     console.error(e);
-        // }
-        bot.startPrivateConversation({user: 'U7BSKA3AN'}, async (err, conv) => {
+        console.log('** The RTM api just opened');
+    });
+
+    controller.on('rtm_close', function () {
+        console.log('** The RTM api just closed');
+    });
+
+    controller.hears(['calculate', 'schedule', 'log'], 'direct_message', async (bot, message) => {
+        bot.startPrivateConversation(message, async (err, conv) => {
             try {
                 if (err) {
                     throw err;
                 }
-                const values = await main.workflow('U7BSKA3AN');
+                const values = await main.workflow(message.user);
                 const fields = jsonToValues(values);
                 conv.ask({
                     attachments: [{
-                        title: 'Is it OKAY, BITCH?',
-                        callback_id: 'U7BSKA3AN-suggest',
+                        title: 'Is this ok?',
+                        callback_id: `${message.user}-suggest`,
                         attachment_type: 'default',
-                        // fields: fields,
-                        actions: [{
-                                "name": "ok",
-                                "text": ":white_check_mark: OK",
-                                "value": "flag",
-                                "type": "button",
-                                "confirm": {
-                                    "title": "Are you sure?",
-                                    "text": "This will do something!",
-                                    "ok_text": "Yes",
-                                    "dismiss_text": "No"
-                                }
-                            },
-                            {
-                                "text": "Fuck no!",
-                                "name": "dismiss",
-                                "value": "delete",
-                                "style": "danger",
-                                "type": "button",
-                        }],
+                        fields: fields,
+                        actions: [ {
+                            "name": "ok",
+                            "text": ":white_check_mark: OK",
+                            "value": "flag",
+                            "type": "button",
+                            "confirm": {
+                                "title": "Are you sure?",
+                                "ok_text": "Yes",
+                                "dismiss_text": "No"
+                            }
+                        }, {
+                            "text": "Change",
+                            "name": "change",
+                            "value": "change",
+                            "style": "danger",
+                            "type": "button",
+                        }
+                        ],
                     }]
                 }, );
             } catch (e) {
@@ -161,48 +155,35 @@ async function listen(controller) {
         });
     });
 
-    controller.on('rtm_close', function () {
-        console.log('** The RTM api just closed');
-    });
-
-    controller.hears(['hello'], 'direct_message', async (bot, message) => {
+    controller.hears(['Meeting', "MAT", "LL", "Other"], 'direct_message', async (bot, message) => {
         try {
-            var reply = {
-                text: 'Hue moe',
-                attachments: [],
-            }
-
-            reply.attachments.push({
-                title: "Blablabla your suggestions are blabalblabla",
-                callback_id: message.user + '-' + 'suggest',
-                attachment_type: 'default',
-                actions: [
-                    {
+            let values = textToJson(message.text);
+            const fields = jsonToValues(values);
+            let reply = {
+                attachments: [{
+                    title: 'Is this ok?',
+                    callback_id: `${message.user}-suggest`,
+                    attachment_type: 'default',
+                    fields: fields,
+                    actions: [ {
                         "name": "ok",
                         "text": ":white_check_mark: OK",
                         "value": "flag",
                         "type": "button",
-                        "confirm": {
-                            "title": "Are you sure?",
-                            "text": "This will do something!",
-                            "ok_text": "Yes",
-                            "dismiss_text": "No"
-                        }
-                    },
-                    {
-                        "text": "Fuck no!",
-                        "name": "dismiss",
-                        "value": "delete",
+                    }, {
+                        "text": "Change",
+                        "name": "change",
+                        "value": "change",
                         "style": "danger",
                         "type": "button",
                     }
-                ]
-            });
-
-
+                    ],
+                }]};
             bot.reply(message, reply);
-
         } catch (e) {
+            bot.reply(message, {
+                text: 'Error occured, try again or contact <@Nik>',
+            });
             console.error(e);
         }
     });

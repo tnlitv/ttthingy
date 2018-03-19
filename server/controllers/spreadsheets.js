@@ -116,13 +116,51 @@ const getSheetsSuggestions = async function (id) {
     }
 };
 
-let addRowToSpreadsheet = async function (values) {
+let addRowToSpreadsheet = async function (data, id) {
     try {
+        const expectedSheetName = getCurrentSheetExpectedName();
+        let currentSheet = await RowHandler.call('get', {
+            ranges: [],
+            includeGridData: false,
+        });
+        currentSheet = currentSheet.data.sheets.find(sht => sht.properties.title === expectedSheetName);
+
+        if (!currentSheet) {
+            currentSheet = await setNewCurrentSheet(expectedSheetName);
+        }
+        const current = currentSheet.properties;
+        let header = await RowHandler.valuesCall('get', { range: `${current.title}!A1:Z1` });
+        header = header.data.values[0];
+        const user = await options.user(id);
+        const { name } = await get(user, JiraLinks.username());
+        let values = [];
+        header.forEach((val, i) => {
+            let value;
+            switch (val) {
+                case 'day':
+                    value = new Date().getDate();
+                    break;
+                case 'name':
+                    value = name;
+                    break;
+                case 'total hours':
+                    value = +process.env.MAX_HOURS;
+                    break;
+                case 'ticket':
+                case 'Meeting description':
+                    value = findUD(data, header[i-1], true);
+                    break;
+                default:
+                    value = findUD(data, header[i], false);
+                    break;
+            }
+            values.push(value);
+        });
         const SheetResp = await RowHandler.valuesCall('append', {
             range: 'A1:A4000',
             valueInputOption: 'USER_ENTERED',
             resource: {
-                values: values
+                values: [values]
             }
         });
         return SheetResp.updatedCells;
@@ -133,5 +171,6 @@ let addRowToSpreadsheet = async function (values) {
 };
 
 module.exports = {
-    getSheetsSuggestions
+    getSheetsSuggestions,
+    addRowToSpreadsheet,
 };
