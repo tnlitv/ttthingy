@@ -36,7 +36,7 @@ const config = {
     disable_startup_messages: true,
 };
 
-module.exports = function (routes) {
+module.exports = function () {
     if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET || !process.env.SLACK_PORT) {
         console.log('Error: Specify clientId clientSecret and port in environment!');
         process.exit(1);
@@ -60,4 +60,4 @@ module.exports = function (routes) {
 
     events.listen(controller);
     return controller.webserver;
-};
+}();
