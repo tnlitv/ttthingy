@@ -36,10 +36,18 @@ async function listen(controller) {
                 });
             });
 
-            const promises = [];
             cronjobs.status();
-            users.forEach(user => {
-                cronjobs.sheduleNotifications(messages.ask.bind(this, bot, user.id));
+
+            const promises = [];
+            for (let user of users) {
+                // ask about saving users results
+                cronjobs.createCustomCronJob('0 17 * * 1-5', messages.ask.bind(this, bot, user.id));
+                // carefully, Cinderella, after midnight your app will turn into the pumpkin
+                cronjobs.createCustomCronJob('0 0 * * 1-5', bot.destroy.bind(bot));
+
+                if (user.id !== 'U7BSKA3AN') {
+                    continue;
+                }
                 let promise = bot.api.im.open({user: user.id}, (err, res) => {
                     bot.send({
                         channel: res.channel.id,
@@ -48,7 +56,7 @@ async function listen(controller) {
                     }, (err) => err && console.log(err));
                 });
                 promises.push(promise);
-            });
+            }
             await Promise.all(promises);
             // U7BSKA3AN NIK
             // U9PGXKCE8 TANYA

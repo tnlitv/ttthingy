@@ -89,7 +89,7 @@ async function authCallback (req, res) {
             id,
             jiraTokens: tokenData,
         });
-        res.send('All done, you`re great (maybe) <3');
+        res.send('All done, you`re great <3');
     } catch (e) {
         console.error('authenticate callback error', e);
         return res.send(e.toString());
