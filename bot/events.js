@@ -37,17 +37,17 @@ async function listen(controller) {
 
         const promises = [];
         cronjobs.status();
-        cronjobs.sheduleNotifications(messages.ask.bind(this, bot, 'U7BSKA3AN'));
-        // users.forEach(user => {
-        //     let promise = bot.api.im.open({ user }, (err, res) => {
-        //         bot.send({
-        //             channel: res.channel.id,
-        //             user,
-        //             text: 'Hi. The bot is now available. Have a nice day :3',
-        //         }, (err) => err && console.log(err));
-        //     });
-        //     promises.push(promise);
-        // });
+        [{ id: 'U7BSKA3AN' }].forEach(user => {
+            cronjobs.sheduleNotifications(messages.ask.bind(this, bot, user.id));
+            let promise = bot.api.im.open({ user }, (err, res) => {
+                bot.send({
+                    channel: res.channel.id,
+                    user,
+                    text: 'Hi, sweetheart. Hope you will have a nice day :3',
+                }, (err) => err && console.log(err));
+            });
+            promises.push(promise);
+        });
         await Promise.all(promises);
         // U7BSKA3AN
         // U9PGXKCE8
