@@ -29,8 +29,9 @@ async function getData(id) {
             .join(',');
 
         const { name } = await get(user, JiraLinks.username());
+        const jql =  JiraLinks.issuesJQL(name, JiraLabels[name], sprintsNames);
         const response = await post(user, JiraLinks.issues(), {
-            jql: JiraLinks.issuesJQL(name, JiraLabels[name], sprintsNames),
+            jql,
             fields: ['summary', 'project', 'issuekey'],
         });
         const issues = response.issues

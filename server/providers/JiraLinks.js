@@ -6,5 +6,5 @@ module.exports = {
     sprints: (board) => `/rest/agile/1.0/board/${board}/sprint?state=active`,
     test: () => '/rest/api/latest/issue/LL-560',
     issues: () => `/rest/api/2/search`,
-    issuesJQL: (name, label, sprints) => `(assignee=${name} OR labels=${label}) AND (updated>startOfDay() OR status in (review)) AND sprint in (${sprints})`,
+    issuesJQL: (name, label, sprints) => `(assignee=${name}${label ? ` OR labels=${label}`: ''}) AND (updated>startOfDay() OR status in ('in progress','review'))${sprints?` AND sprint in (${sprints})` : ''}`,
 };
