@@ -1,24 +1,17 @@
-// 'use strict';
-
 require('dotenv').config();
-
-const http = require('http');
-const express = require('express');
 const path = require('path');
-const app = require('./server/config.js');
+const bodyParser = require('body-parser');
+const express = require('express');
 const session = require('express-session');
+require('./server/db-connect.js').connect();
+const API = require('./server/routes');
+const server = require('./bot/bot');
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({
+server.use(bodyParser.json());
+server.use(express.static(path.join(__dirname, 'public')));
+server.use(session({
     secret: 'red',
     resave: true,
     saveUninitialized: true,
 }));
-require('./server/db-connect.js').connect();
-require('./bot/bot')();
-require('./server/routes.js');
-
-// Starting express server
-module.exports = http.createServer(app).listen(app.get('port'), function () {
-    console.log(`Express server listening on port ${app.get('port')}`);
-});
+server.use('/', API);

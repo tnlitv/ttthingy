@@ -32,10 +32,12 @@ const config = {
     clientId: process.env.SLACK_CLIENT_ID,
     clientSecret: process.env.SLACK_CLIENT_SECRET,
     scopes: ['bot'],
+    // debug: true,
+    disable_startup_messages: true,
 };
 
 module.exports = function () {
-    if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET || !process.env.SLACK_PORT) {
+    if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET || !process.env.PORT) {
         console.log('Error: Specify clientId clientSecret and port in environment!');
         process.exit(1);
     }
@@ -44,7 +46,7 @@ module.exports = function () {
         storage: BotkitStorage({mongoUri: process.env.MONGODB_URI}),
     }).configureSlackApp(config);
 
-    controller.setupWebserver(process.env.SLACK_PORT, function (err, webserver) {
+    controller.setupWebserver(process.env.PORT, function (err, webserver) {
         controller.createWebhookEndpoints(controller.webserver);
 
         controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
@@ -57,4 +59,5 @@ module.exports = function () {
     });
 
     events.listen(controller);
-};
+    return controller.webserver;
+}();
