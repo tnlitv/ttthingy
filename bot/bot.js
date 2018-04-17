@@ -46,7 +46,7 @@ module.exports = function () {
         storage: BotkitStorage({mongoUri: process.env.MONGODB_URI}),
     }).configureSlackApp(config);
 
-    controller.setupWebserver(process.env.SERVER_PORT, function (err, webserver) {
+    controller.setupWebserver(process.env.PORT, function (err, webserver) {
         controller.createWebhookEndpoints(controller.webserver);
 
         controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
