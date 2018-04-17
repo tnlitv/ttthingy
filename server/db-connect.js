@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
-const config = require('./config.js');
 const mongoURI = process.env.MONGODB_URI;
-const options = config.mongoOptions;
 const RECONNECT_INTERVAL = 15000;
 mongoose.Promise = Promise;
 require('./models/init.js').initialize();
@@ -24,7 +22,9 @@ mongoose.connection.once('open', function () {
 
 async function connect() {
     try {
-        await mongoose.connect(mongoURI, options);
+        await mongoose.connect(mongoURI, {
+            useMongoClient: true
+        });
     } catch (e) {
         console.error(e.stack.split('\n').splice(0, 3).join('\n'));
         setTimeout(connect, RECONNECT_INTERVAL);
