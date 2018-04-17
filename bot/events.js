@@ -38,21 +38,20 @@ async function listen(controller) {
 
             const promises = [];
             cronjobs.status();
-            const user = users.find(u => u.id === 'U7BSKA3AN');
-            [user].forEach(user => {
+            users.forEach(user => {
                 cronjobs.sheduleNotifications(messages.ask.bind(this, bot, user.id));
                 let promise = bot.api.im.open({user: user.id}, (err, res) => {
                     bot.send({
                         channel: res.channel.id,
                         user,
-                        text: 'Hi, sweetheart! Hope you will have a nice day (:',
+                        text: 'Hi, sweetheart! It`s my test run. Hope you will have a nice day :)',
                     }, (err) => err && console.log(err));
                 });
                 promises.push(promise);
             });
             await Promise.all(promises);
-            // U7BSKA3AN
-            // U9PGXKCE8
+            // U7BSKA3AN NIK
+            // U9PGXKCE8 TANYA
         } catch (e) {
             console.error(e);
         }
@@ -64,6 +63,14 @@ async function listen(controller) {
         bot.startRTM(function (err) {
             if (err) {
                 console.log('Error connecting bot to Slack:', err);
+            } else {
+                bot.api.im.open({user: 'U7BSKA3AN'}, (err, res) => {
+                    bot.send({
+                        channel: res.channel.id,
+                        user: 'U7BSKA3AN',
+                        text: 'Master, I was closed and restarted',
+                    }, (err) => err && console.log(err));
+                });
             }
         });
     });
