@@ -29,28 +29,33 @@ async function listen(controller) {
 
     controller.on('rtm_open', async (bot) => {
         console.log('** The RTM api just opened');
-        const users = await new Promise((resolve, reject) => {
-            controller.storage.users.all((err, res) => {
-               err ? reject(err) : resolve(res);
+        try {
+            const users = await new Promise((resolve, reject) => {
+                controller.storage.users.all((err, res) => {
+                    err ? reject(err) : resolve(res);
+                });
             });
-        });
 
-        const promises = [];
-        cronjobs.status();
-        [{ id: 'U7BSKA3AN' }].forEach(user => {
-            cronjobs.sheduleNotifications(messages.ask.bind(this, bot, user.id));
-            let promise = bot.api.im.open({ user }, (err, res) => {
-                bot.send({
-                    channel: res.channel.id,
-                    user,
-                    text: 'Hi, sweetheart. Hope you will have a nice day :3',
-                }, (err) => err && console.log(err));
+            const promises = [];
+            cronjobs.status();
+            const user = users.find(u => u.id === 'U7BSKA3AN');
+            [user].forEach(user => {
+                cronjobs.sheduleNotifications(messages.ask.bind(this, bot, user.id));
+                let promise = bot.api.im.open({user: user.id}, (err, res) => {
+                    bot.send({
+                        channel: res.channel.id,
+                        user,
+                        text: 'Hi, sweetheart! Hope you will have a nice day (:',
+                    }, (err) => err && console.log(err));
+                });
+                promises.push(promise);
             });
-            promises.push(promise);
-        });
-        await Promise.all(promises);
-        // U7BSKA3AN
-        // U9PGXKCE8
+            await Promise.all(promises);
+            // U7BSKA3AN
+            // U9PGXKCE8
+        } catch (e) {
+            console.error(e);
+        }
     });
 
     controller.on('rtm_close', function () {
@@ -63,7 +68,7 @@ async function listen(controller) {
         });
     });
 
-    controller.hears(['calculate', 'schedule', 'log'], 'direct_message', messages.calculate);
+    controller.hears(['calculate', 'schedule', 'log'], 'direct_message', (bot, message) => messages.ask(bot, message.user));
 
     controller.hears(['Meeting', "MAT", "LL", "Other"], 'direct_message', messages.handleAnswer);
 
