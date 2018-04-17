@@ -37,7 +37,7 @@ async function listen(controller) {
 
         const promises = [];
         cronjobs.status();
-        cronjobs.sheduleNotifications(messages.ask.bind(this, bot, 'U7BSKA3AN'));
+        // cronjobs.sheduleNotifications(messages.ask.bind(this, bot, 'U7BSKA3AN'));
         // users.forEach(user => {
         //     let promise = bot.api.im.open({ user }, (err, res) => {
         //         bot.send({
