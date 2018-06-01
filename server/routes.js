@@ -11,7 +11,7 @@ const handler = async function (req, res, fn) {
         data = await fn(req.query.id);
         return res.json(data);
     } catch (e) {
-        res.status(500).send(e);
+        res.status(500).send(e.toString());
     }
 };
 

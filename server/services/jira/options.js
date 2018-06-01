@@ -20,11 +20,11 @@ async function consumer() {
     );
 }
 
-function user(id) {
+function token(id) {
     return Token.findOne({id});
 }
 
 module.exports = {
     consumer,
-    user,
+    token,
 };
